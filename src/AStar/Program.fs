@@ -1,6 +1,15 @@
 module Program
 
-[<EntryPoint>]
-let main argv =
-    printfn "%A" argv
-    0 // return an integer exit code
+open prunner
+
+let add a b = a + b
+
+context "Hello world"
+
+"adding two numbers works" &&& fun ctx ->
+  add 1 2 == 3
+  add 3 2 != 3
+
+run 1 |> ignore
+
+System.Console.ReadKey() |> ignore

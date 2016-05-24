@@ -33,10 +33,22 @@ Target "Deploy" (fun _ ->
         |> Zip buildDir (deployDir + "ApplicationName." + version + ".zip")
 )
 
+Target "Test" (fun _ ->
+  ExecProcess
+    (fun info ->
+     info.FileName <- (buildDir @@ "AStar.exe")
+    ) (System.TimeSpan.FromMinutes 60.)
+  |> ignore
+)
+
 // Build order
 "Clean"
   ==> "Build"
   ==> "Deploy"
+
+"Clean"
+  ==> "Build"
+  ==> "Test"
 
 // start build
 RunTargetOrDefault "Build"
