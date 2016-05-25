@@ -54,10 +54,8 @@ let aStar graph start goal =
   let enqueue value = frontier <- value :: frontier
   let dequeue () =
     let sorted = frontier |> List.sortBy (fun (_, priority) -> priority)
-    let min = sorted |> List.head
-    let tail = sorted |> List.tail
-    frontier <- tail
-    min
+    frontier <- sorted.Tail
+    sorted.Head
 
   let heuristic locationA locationB = Math.Abs(locationA.x - locationB.x) + Math.Abs(locationA.y - locationB.y)
 
@@ -65,10 +63,12 @@ let aStar graph start goal =
   graph.cameFrom.[start] <- start
   graph.costSoFar.[start] <- 0
 
-  while frontier.Length > 0 do
-    let current, priority = dequeue ()
+  let mutable break = false
+  while frontier.Length > 0 && break <> true do
+    let current, _ = dequeue ()
 
-    if current <> goal then
+    if current = goal then break <- true
+    if break <> true then
       neighbors graph current
       |> List.iter (fun neighbor ->
         let newCost = graph.costSoFar.[current] + cost graph current neighbor
