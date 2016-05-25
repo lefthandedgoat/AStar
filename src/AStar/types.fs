@@ -21,10 +21,9 @@ let directions =
     { x =  0; y =  1; weight = Blocked }
   ]
 
-type SquareGrid =
+type Graph =
   {
-    width : int
-    height : int
+    nodes : Dictionary<(int * int), Node>
     cameFrom : Dictionary<Node, Node>
     costSoFar : Dictionary<Node, int>
     path : Node list

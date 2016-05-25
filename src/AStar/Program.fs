@@ -14,11 +14,13 @@ context "A* tests"
 //this test is the example from the below blog
 //http://www.redblobgames.com/pathfinding/a-star/introduction.html#dijkstra
 "Example test" &&& fun ctx ->
-  let graph = helpers.makeMovementCostExmapleGraph ()
+  let width = 10
+  let height = 10
+  let graph = helpers.makeMovementCostExmapleGraph width height
   let start = { x = 1; y = 4; weight = Weight(0) }
   let goal =  { x = 8; y = 5; weight = Weight(0) }
 
-  let drawGrid graph = drawGrid graph start goal ctx.print ctx.printn
+  let drawGrid graph = drawRectangularGrid width height graph start goal ctx.print ctx.printn
   ctx.printn "empty graph"
   drawGrid graph
   ctx.printn ""

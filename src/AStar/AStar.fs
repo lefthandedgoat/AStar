@@ -4,23 +4,19 @@ open System
 open System.Collections.Generic
 open types
 
-let inBounds grid node =
-     0 <= node.x && node.x < grid.width
-  && 0 <= node.y && node.y < grid.height
-
-let passable node = node.weight <> Blocked
-
 let cost nodeB =
   match nodeB.weight with
   | Weight(weight) -> weight
   | Blocked -> failwith "cost function should never be called with a blocked node"
 
-let neighbors grid node =
+let neighbors graph node =
   directions
   |> List.map (fun direction ->
-    let next = { x = node.x + direction.x; y = node.y + direction.y; weight = Blocked }
-    if (inBounds grid next) && (passable next)
-    then Some next
+    let neighborX = node.x + direction.x
+    let neighborY = node.y + direction.y
+    let neighborExists, neighbor = graph.nodes.TryGetValue((neighborX, neighborY))
+    if neighborExists && neighbor.weight <> Blocked
+    then Some neighbor
     else None)
   |> List.choose id
 
@@ -37,9 +33,9 @@ let aStar graph start goal heuristic =
     frontier <- sorted.Tail
     sorted.Head
 
-  enqueue (start, 0)
+  enqueue (start, cost start)
   graph.cameFrom.[start] <- start
-  graph.costSoFar.[start] <- 0
+  graph.costSoFar.[start] <- cost start
 
   let mutable break' = false
   while frontier.Length > 0 && break' <> true do
