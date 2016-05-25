@@ -9,11 +9,13 @@ let drawGrid graph start goal printer printern =
     xs |> List.iter (fun x ->
       let location = { x = x; y = y; }
       let isPath = graph.path |> List.contains location
+      let isForest = graph.forests.Contains(location)
       let hasValue, outLocation = graph.cameFrom.TryGetValue(location)
       let pointer = if hasValue = false then location else outLocation
       if location = start                      then printer "s "
       else if location = goal                  then printer "g "
       else if isPath                           then printer "@ "
+      else if isForest                         then printer "🌲 "
       else if (graph.walls.Contains(location)) then printer "##"
       else if (pointer.x = x + 1)              then printer "→ "
       else if (pointer.x = x - 1)              then printer "← "

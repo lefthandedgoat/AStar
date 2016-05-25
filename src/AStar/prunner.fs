@@ -10,7 +10,7 @@ type color = System.ConsoleColor
 let defaultColor =
   match System.Console.BackgroundColor with
   | color.Black
-  | color.Gray -> color.White
+  | color.Gray -> color.Black
   | _ -> color.Black
 
 type print =
