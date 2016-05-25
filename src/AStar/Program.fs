@@ -26,6 +26,7 @@ type SquareGrid =
     forests : HashSet<Location>
     cameFrom : Dictionary<Location, Location>
     costSoFar : Dictionary<Location, int>
+    path : Location list
   }
 
 let inBounds grid location =
@@ -63,12 +64,12 @@ let aStar graph start goal =
   graph.cameFrom.[start] <- start
   graph.costSoFar.[start] <- 0
 
-  let mutable break = false
-  while frontier.Length > 0 && break <> true do
+  let mutable break' = false
+  while frontier.Length > 0 && break' <> true do
     let current, _ = dequeue ()
 
-    if current = goal then break <- true
-    if break <> true then
+    if current = goal then break' <- true
+    if break' <> true then
       neighbors graph current
       |> List.iter (fun neighbor ->
         let newCost = graph.costSoFar.[current] + cost graph current neighbor
@@ -88,10 +89,12 @@ let drawGrid graph start goal =
   ys |> List.iter (fun y ->
     xs |> List.iter (fun x ->
       let location = { x = x; y = y; }
+      let isPath = graph.path |> List.contains location
       let hasValue, outLocation = graph.cameFrom.TryGetValue(location)
       let pointer = if hasValue = false then location else outLocation
       if location = start                      then Console.Write("s ")
       else if location = goal                  then Console.Write("g ")
+      else if isPath                           then Console.Write("@ ")
       else if (graph.walls.Contains(location)) then Console.Write("##")
       else if (pointer.x = x + 1)              then Console.Write("→ ")
       else if (pointer.x = x - 1)              then Console.Write("← ")
@@ -99,6 +102,17 @@ let drawGrid graph start goal =
       else if (pointer.y = y - 1)              then Console.Write("↑ ")
       else                                          Console.Write("* "))
     Console.WriteLine())
+
+let reconstructPath (cameFrom : Dictionary<Location, Location>) start goal =
+  let mutable current = goal
+  let mutable path = [current]
+  while current <> start do
+    current <- cameFrom.[current]
+    path <- current :: path
+
+  path
+
+context "A* tests"
 
 "Example test" &&& fun ctx ->
   let graph =
@@ -109,6 +123,7 @@ let drawGrid graph start goal =
       forests = HashSet<Location>()
       cameFrom = Dictionary<Location, Location>()
       costSoFar = Dictionary<Location, int>()
+      path = []
     }
 
   // Make "diagram 4" from main article
@@ -116,41 +131,50 @@ let drawGrid graph start goal =
     [7 .. 8] |> List.iter (fun y ->
       graph.walls.Add({ x = x; y = y }) |> ignore))
 
-  graph.forests.Add { x = 3; y = 4; } |> ignore
-  graph.forests.Add { x = 3; y = 5; } |> ignore
-  graph.forests.Add { x = 4; y = 1; } |> ignore
-  graph.forests.Add { x = 4; y = 2; } |> ignore
-  graph.forests.Add { x = 4; y = 3; } |> ignore
-  graph.forests.Add { x = 4; y = 4; } |> ignore
-  graph.forests.Add { x = 4; y = 5; } |> ignore
-  graph.forests.Add { x = 4; y = 6; } |> ignore
-  graph.forests.Add { x = 4; y = 7; } |> ignore
-  graph.forests.Add { x = 4; y = 8; } |> ignore
-  graph.forests.Add { x = 5; y = 1; } |> ignore
-  graph.forests.Add { x = 5; y = 2; } |> ignore
-  graph.forests.Add { x = 5; y = 3; } |> ignore
-  graph.forests.Add { x = 5; y = 4; } |> ignore
-  graph.forests.Add { x = 5; y = 5; } |> ignore
-  graph.forests.Add { x = 5; y = 6; } |> ignore
-  graph.forests.Add { x = 5; y = 7; } |> ignore
-  graph.forests.Add { x = 5; y = 8; } |> ignore
-  graph.forests.Add { x = 6; y = 2; } |> ignore
-  graph.forests.Add { x = 6; y = 3; } |> ignore
-  graph.forests.Add { x = 6; y = 4; } |> ignore
-  graph.forests.Add { x = 6; y = 5; } |> ignore
-  graph.forests.Add { x = 6; y = 6; } |> ignore
-  graph.forests.Add { x = 6; y = 7; } |> ignore
-  graph.forests.Add { x = 7; y = 3; } |> ignore
-  graph.forests.Add { x = 7; y = 4; } |> ignore
-  graph.forests.Add { x = 7; y = 5; } |> ignore
+  let add location = graph.forests.Add(location) |> ignore
+  add { x = 3; y = 4; }
+  add { x = 3; y = 5; }
+  add { x = 4; y = 1; }
+  add { x = 4; y = 2; }
+  add { x = 4; y = 3; }
+  add { x = 4; y = 4; }
+  add { x = 4; y = 5; }
+  add { x = 4; y = 6; }
+  add { x = 4; y = 7; }
+  add { x = 4; y = 8; }
+  add { x = 5; y = 1; }
+  add { x = 5; y = 2; }
+  add { x = 5; y = 3; }
+  add { x = 5; y = 4; }
+  add { x = 5; y = 5; }
+  add { x = 5; y = 6; }
+  add { x = 5; y = 7; }
+  add { x = 5; y = 8; }
+  add { x = 6; y = 2; }
+  add { x = 6; y = 3; }
+  add { x = 6; y = 4; }
+  add { x = 6; y = 5; }
+  add { x = 6; y = 6; }
+  add { x = 6; y = 7; }
+  add { x = 7; y = 3; }
+  add { x = 7; y = 4; }
+  add { x = 7; y = 5; }
 
   let start = { x = 1; y = 4; }
   let goal =  { x = 8; y = 5; }
 
+  System.Console.WriteLine("empty graph")
   drawGrid graph start goal
   System.Console.WriteLine("")
+
+  System.Console.WriteLine("graph with results")
   let results = aStar graph start goal
   drawGrid results start goal
+  System.Console.WriteLine("")
+
+  System.Console.WriteLine("graph with path")
+  let graph = { graph with path = reconstructPath graph.cameFrom start goal}
+  drawGrid graph start goal
 
 run 1 |> ignore
 
