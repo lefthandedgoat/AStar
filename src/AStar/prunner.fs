@@ -7,6 +7,12 @@ open System.Collections.Generic
 
 type color = System.ConsoleColor
 
+let defaultColor =
+  match System.Console.BackgroundColor with
+  | color.Black
+  | color.Gray -> color.White
+  | _ -> color.Black
+
 type print =
   | Print
   | Printn
@@ -135,10 +141,10 @@ let newReporter () : actor<Reporter> =
             messages.Add(id, [color.DarkCyan, message, print.Printn])
             return! loop passed failed skipped todo
         | Reporter.Print(message, id) ->
-            messages.[id] <- (color.Black, message, print.Print)::messages.[id] //prepend new message
+            messages.[id] <- (defaultColor, message, print.Print)::messages.[id] //prepend new message
             return! loop passed failed skipped todo
         | Reporter.Printn(message, id) ->
-            messages.[id] <- (color.Black, message, print.Printn)::messages.[id] //prepend new message
+            messages.[id] <- (defaultColor, message, print.Printn)::messages.[id] //prepend new message
             return! loop passed failed skipped todo
         | Reporter.Pass id ->
             printMessages id
