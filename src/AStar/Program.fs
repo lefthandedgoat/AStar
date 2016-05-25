@@ -48,13 +48,15 @@ let neighbors grid location =
     else None)
   |> List.choose id
 
-//using a set instead of priority queue due to this answer by Jon Harrop http://stackoverflow.com/a/3365715
 let aStar graph start goal =
-  let mutable frontier = Set.empty
-  let enqueue value = frontier <- Set.add value frontier
+  //fake a priority queue using lists
+  let mutable (frontier : (Location * int) list) = []
+  let enqueue value = frontier <- value :: frontier
   let dequeue () =
-    let min = Set.minElement frontier
-    frontier <- Set.remove min frontier
+    let sorted = frontier |> List.sortBy (fun (_, priority) -> priority)
+    let min = sorted |> List.head
+    let tail = sorted |> List.tail
+    frontier <- tail
     min
 
   let heuristic locationA locationB = Math.Abs(locationA.x - locationB.x) + Math.Abs(locationA.y - locationB.y)
@@ -63,7 +65,7 @@ let aStar graph start goal =
   graph.cameFrom.[start] <- start
   graph.costSoFar.[start] <- 0
 
-  while frontier.Count > 0 do
+  while frontier.Length > 0 do
     let current, priority = dequeue ()
 
     if current <> goal then
@@ -80,7 +82,7 @@ let aStar graph start goal =
 
 //test helpers
 
-let drawGrid graph =
+let drawGrid graph start goal =
   let xs = [ 0 .. graph.width - 1  ]
   let ys = [ 0 .. graph.height - 1 ]
   ys |> List.iter (fun y ->
@@ -88,12 +90,14 @@ let drawGrid graph =
       let location = { x = x; y = y; }
       let hasValue, outLocation = graph.cameFrom.TryGetValue(location)
       let pointer = if hasValue = false then location else outLocation
-      if (graph.walls.Contains(location)) then Console.Write("##")
-      else if (pointer.x = x + 1)         then Console.Write("\u2192 ")
-      else if (pointer.x = x - 1)         then Console.Write("\u2190 ")
-      else if (pointer.y = y + 1)         then Console.Write("\u2193 ")
-      else if (pointer.y = y - 1)         then Console.Write("\u2191 ")
-      else                                     Console.Write("* "))
+      if location = start                      then Console.Write("s ")
+      else if location = goal                  then Console.Write("g ")
+      else if (graph.walls.Contains(location)) then Console.Write("##")
+      else if (pointer.x = x + 1)              then Console.Write("→ ")
+      else if (pointer.x = x - 1)              then Console.Write("← ")
+      else if (pointer.y = y + 1)              then Console.Write("↓ ")
+      else if (pointer.y = y - 1)              then Console.Write("↑ ")
+      else                                          Console.Write("* "))
     Console.WriteLine())
 
 "Example test" &&& fun ctx ->
@@ -143,8 +147,10 @@ let drawGrid graph =
   let start = { x = 1; y = 4; }
   let goal =  { x = 8; y = 5; }
 
+  drawGrid graph start goal
+  System.Console.WriteLine("")
   let results = aStar graph start goal
-  drawGrid results
+  drawGrid results start goal
 
 run 1 |> ignore
 
