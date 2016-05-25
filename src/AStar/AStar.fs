@@ -24,16 +24,18 @@ let neighbors grid location =
     else None)
   |> List.choose id
 
-let aStar graph start goal =
-  //fake a priority queue using lists
+//manhattan distance
+let manhattanHeuristic locationA locationB = Math.Abs(locationA.x - locationB.x) + Math.Abs(locationA.y - locationB.y)
+
+let aStar graph start goal heuristic =
+  //frontier are the items that you need to explore in the future
   let mutable (frontier : (Location * int) list) = []
+  //fake a priority queue using lists
   let enqueue value = frontier <- value :: frontier
   let dequeue () =
     let sorted = frontier |> List.sortBy (fun (_, priority) -> priority)
     frontier <- sorted.Tail
     sorted.Head
-
-  let heuristic locationA locationB = Math.Abs(locationA.x - locationB.x) + Math.Abs(locationA.y - locationB.y)
 
   enqueue (start, 0)
   graph.cameFrom.[start] <- start

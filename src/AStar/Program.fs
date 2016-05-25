@@ -66,7 +66,7 @@ context "A* tests"
   ctx.printn ""
 
   ctx.printn "graph with results"
-  let results = aStar graph start goal
+  let results = aStar graph start goal manhattanHeuristic
   drawGrid results
   ctx.printn ""
 
