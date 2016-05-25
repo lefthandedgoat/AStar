@@ -9,10 +9,10 @@ let makeMovementCostExmapleGraph () =
     {
       width = 10
       height = 10
-      walls = HashSet<Location>()
-      forests = HashSet<Location>()
-      cameFrom = Dictionary<Location, Location>()
-      costSoFar = Dictionary<Location, int>()
+      walls = HashSet<Node>()
+      forests = HashSet<Node>()
+      cameFrom = Dictionary<Node, Node>()
+      costSoFar = Dictionary<Node, int>()
       path = []
     }
 

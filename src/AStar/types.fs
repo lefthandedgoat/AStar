@@ -2,7 +2,7 @@ module types
 
 open System.Collections.Generic
 
-type Location =
+type Node =
   {
     x : int
     y : int
@@ -20,9 +20,9 @@ type SquareGrid =
   {
     width : int
     height : int
-    walls : HashSet<Location>
-    forests : HashSet<Location>
-    cameFrom : Dictionary<Location, Location>
-    costSoFar : Dictionary<Location, int>
-    path : Location list
+    walls : HashSet<Node>
+    forests : HashSet<Node>
+    cameFrom : Dictionary<Node, Node>
+    costSoFar : Dictionary<Node, int>
+    path : Node list
   }

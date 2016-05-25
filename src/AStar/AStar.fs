@@ -29,7 +29,7 @@ let manhattanHeuristic locationA locationB = Math.Abs(locationA.x - locationB.x)
 
 let aStar graph start goal heuristic =
   //frontier are the items that you need to explore in the future
-  let mutable (frontier : (Location * int) list) = []
+  let mutable (frontier : (Node * int) list) = []
   //fake a priority queue using lists
   let enqueue value = frontier <- value :: frontier
   let dequeue () =
@@ -58,7 +58,7 @@ let aStar graph start goal heuristic =
 
   graph
 
-let reconstructPath (cameFrom : Dictionary<Location, Location>) start goal =
+let reconstructPath (cameFrom : Dictionary<Node, Node>) start goal =
   let mutable current = goal
   let mutable path = [current]
   while current <> start do
