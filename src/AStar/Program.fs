@@ -15,8 +15,8 @@ context "A* tests"
 //http://www.redblobgames.com/pathfinding/a-star/introduction.html#dijkstra
 "Example test" &&& fun ctx ->
   let graph = helpers.makeMovementCostExmapleGraph ()
-  let start = { x = 1; y = 4; }
-  let goal =  { x = 8; y = 5; }
+  let start = { x = 1; y = 4; weight = Weight(0) }
+  let goal =  { x = 8; y = 5; weight = Weight(0) }
 
   let drawGrid graph = drawGrid graph start goal ctx.print ctx.printn
   ctx.printn "empty graph"
