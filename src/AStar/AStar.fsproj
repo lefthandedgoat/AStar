@@ -48,6 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="prunner.fs" />
+    <Compile Include="types.fs" />
+    <Compile Include="AStar.fs" />
+    <Compile Include="printfing.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
