@@ -60,18 +60,19 @@ context "A* tests"
   let start = { x = 1; y = 4; }
   let goal =  { x = 8; y = 5; }
 
-  System.Console.WriteLine("empty graph")
-  drawGrid graph start goal
-  System.Console.WriteLine("")
+  let drawGrid graph = drawGrid graph start goal ctx.print ctx.printn
+  ctx.printn "empty graph"
+  drawGrid graph
+  ctx.printn ""
 
-  System.Console.WriteLine("graph with results")
+  ctx.printn "graph with results"
   let results = aStar graph start goal
-  drawGrid results start goal
-  System.Console.WriteLine("")
+  drawGrid results
+  ctx.printn ""
 
-  System.Console.WriteLine("graph with path")
+  ctx.printn "graph with path"
   let graph = { graph with path = reconstructPath graph.cameFrom start goal}
-  drawGrid graph start goal
+  drawGrid graph
 
 run 1 |> ignore
 

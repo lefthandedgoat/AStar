@@ -7,14 +7,20 @@ open System.Collections.Generic
 
 type color = System.ConsoleColor
 
+type print =
+  | Print
+  | Printn
+
 //reporter.fs
-let colorWriteReset color message =
+let colorWriteReset color message print =
   Console.ForegroundColor <- color
-  printfn "%s" message
+  match print with
+  | Print -> printf "%s" message
+  | Printn -> printfn "%s" message
   Console.ResetColor()
 
 let printError (ex : Exception) =
-  colorWriteReset color.Red "Error: "
+  colorWriteReset color.Red "Error: " Printn
   printfn "%s" ex.Message
   printfn "%s" "Stack: "
   ex.StackTrace.Split([| "\r\n"; "\n" |], StringSplitOptions.None)
@@ -27,9 +33,9 @@ let printError (ex : Exception) =
         let beginning = trace.Split([| ":line" |], StringSplitOptions.None).[0]
         let line = trace.Split([| ":line" |], StringSplitOptions.None).[1]
         printf "%s" beginning
-        colorWriteReset color.DarkGreen (":line" + line)
+        colorWriteReset color.DarkGreen (":line" + line) Printn
       else
-        colorWriteReset color.DarkGreen trace
+        colorWriteReset color.DarkGreen trace Printn
     Console.ResetColor())
 
 //types.fs
@@ -40,6 +46,7 @@ type Reporter =
   | ContextEnd of description:string
   | TestStart of description:string * id:Guid
   | Print of message:string * id:Guid
+  | Printn of message:string * id:Guid
   | Skip of id:Guid
   | Todo of id:Guid
   | Pass of id:Guid
@@ -48,7 +55,9 @@ type Reporter =
 
 type TestContext (testId:Guid, reporter : actor<Reporter>) = class
   member x.TestId = testId
-  member x.printfn fmtStr = Printf.kprintf (fun msg -> reporter.Post(Print(msg, x.TestId))) fmtStr
+  member x.printfn fmtStr = Printf.kprintf (fun msg -> reporter.Post(Printn(msg, x.TestId))) fmtStr
+  member x.printn str = reporter.Post(Printn(str, x.TestId))
+  member x.print str = reporter.Post(Print(str, x.TestId))
 end
 
 type Test =
@@ -106,8 +115,8 @@ let ( != ) expected actual = if expected = actual then failwith <| sprintf "FAIL
 
 //actors.fs
 let newReporter () : actor<Reporter> =
-  let messages = new Dictionary<Guid, (color * string) list>()
-  let printMessages id = messages.[id] |> List.rev |> List.iter (fun (color, message) -> colorWriteReset color message)
+  let messages = new Dictionary<Guid, (color * string * print) list>()
+  let printMessages id = messages.[id] |> List.rev |> List.iter (fun (color, message, print) -> colorWriteReset color message print)
   actor.Start(fun self ->
     let rec loop passed failed skipped todo =
       async {
@@ -115,22 +124,25 @@ let newReporter () : actor<Reporter> =
         match msg with
         | ContextStart description ->
             let message = sprintf "context: %s" description
-            colorWriteReset color.DarkYellow message
+            colorWriteReset color.DarkYellow message print.Printn
             return! loop passed failed skipped todo
         | ContextEnd description ->
             let message = sprintf "context end: %s" description
-            colorWriteReset color.DarkYellow message
+            colorWriteReset color.DarkYellow message print.Printn
             return! loop passed failed skipped todo
         | Reporter.TestStart(description, id) ->
             let message = sprintf "Test: %s" description
-            messages.Add(id, [color.DarkCyan, message])
+            messages.Add(id, [color.DarkCyan, message, print.Printn])
             return! loop passed failed skipped todo
         | Reporter.Print(message, id) ->
-            messages.[id] <- (color.Black, message)::messages.[id] //prepend new message
+            messages.[id] <- (color.Black, message, print.Print)::messages.[id] //prepend new message
+            return! loop passed failed skipped todo
+        | Reporter.Printn(message, id) ->
+            messages.[id] <- (color.Black, message, print.Printn)::messages.[id] //prepend new message
             return! loop passed failed skipped todo
         | Reporter.Pass id ->
             printMessages id
-            colorWriteReset color.Green "Passed"
+            colorWriteReset color.Green "Passed" print.Printn
             return! loop (passed + 1) failed skipped todo
         | Reporter.Fail(id, ex) ->
             printMessages id
@@ -138,19 +150,19 @@ let newReporter () : actor<Reporter> =
             return! loop passed (failed + 1) skipped todo
         | Reporter.Skip id ->
             printMessages id
-            colorWriteReset color.Yellow "Skipped"
+            colorWriteReset color.Yellow "Skipped" print.Printn
             return! loop passed failed (skipped + 1) todo
         | Reporter.Todo id ->
             printMessages id
-            colorWriteReset color.Yellow "Todo"
+            colorWriteReset color.Yellow "Todo" print.Printn
             return! loop passed failed skipped (todo + 1)
         | Reporter.RunOver (minutes, seconds, replyChannel) ->
             printfn ""
             printfn "%i minutes %i seconds to execute" minutes seconds
-            colorWriteReset color.Green (sprintf "%i passed" passed)
-            colorWriteReset color.Yellow (sprintf "%i skipped" skipped)
-            colorWriteReset color.Yellow (sprintf "%i todo" todo)
-            colorWriteReset color.Red (sprintf "%i failed" failed)
+            colorWriteReset color.Green (sprintf "%i passed" passed) print.Printn
+            colorWriteReset color.Yellow (sprintf "%i skipped" skipped) print.Printn
+            colorWriteReset color.Yellow (sprintf "%i todo" todo) print.Printn
+            colorWriteReset color.Red (sprintf "%i failed" failed) print.Printn
             replyChannel.Reply failed
             return! loop passed failed skipped todo
       }
