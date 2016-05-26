@@ -4,7 +4,8 @@ open System.Collections.Generic
 open types
 
 let blocked = Blocked
-let tree    = Weight(5)
+let river  = Weight(4)
+let forest  = Weight(5)
 
 let generateRectangularGrid width height =
   let nodes = Dictionary<(int * int), Node>()
@@ -33,10 +34,10 @@ let makeMovementCostExmapleGraph width height =
 
   horizontalLine graph 1 3 7 blocked
   horizontalLine graph 1 3 8 blocked
-  verticalLine   graph 3 4 5 tree
-  verticalLine   graph 4 1 8 tree
-  verticalLine   graph 5 1 8 tree
-  verticalLine   graph 6 2 7 tree
-  verticalLine   graph 7 3 5 tree
+  verticalLine   graph 3 4 5 forest
+  verticalLine   graph 4 1 8 forest
+  verticalLine   graph 5 1 8 river
+  verticalLine   graph 6 2 7 forest
+  verticalLine   graph 7 3 5 forest
 
   graph
